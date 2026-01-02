@@ -58,7 +58,7 @@ struct ContentView: View {
             AddProfileView(profiles: $profiles, isPresented: $showAddSheet)
                 .frame(width: 500, height: 400)
         }
-        .onChange(of: profiles) { _ in saveProfiles() }
+        .onChange(of: profiles) { saveProfiles() }
         .frame(minWidth: 800, minHeight: 600)
     }
     
@@ -88,27 +88,58 @@ struct TerminalSessionView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(alignment: .center) {
                 Text(profile.name)
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                 
-                if engine.isRunning {
-                    Text("• Live").foregroundColor(.green).font(.caption)
-                    Spacer()
-                    Button(action: { engine.sendInterrupt() }) {
-                        Label("Stop", systemImage: "stop.circle")
+                Spacer()
+                
+                HStack(spacing: 12) {
+                    if engine.isRunning {
+                        HStack(spacing: 4) {
+                            Circle().fill(Color.green).frame(width: 8, height: 8)
+                            Text("Live")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Button(action: {
+                            engine.stop()
+                        }) {
+                            Image(systemName: "stop.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Kill Process immediately")
+                        
+                        // Cmd + '.' quit shortcut
+                        Button("HiddenSignal") {
+                            engine.sendInterrupt()
+                        }
+                        .keyboardShortcut(".", modifiers: .command)
+                        .opacity(0)
+                        .frame(width: 0, height: 0)
+                        
+                    } else {
+                        HStack(spacing: 4) {
+                            Circle().fill(Color.gray).frame(width: 8, height: 8)
+                            Text("Inactive")
+                                .font(.subheadline)
+                                .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                        }
+                        
+                        Button("Start") {
+                            startEngine()
+                        }
+                        .controlSize(.regular)
                     }
-                    .keyboardShortcut(".", modifiers: .command)
-                } else {
-                    Text("• Inactive").foregroundColor(.secondary).font(.caption)
-                    Spacer()
-                    Button("Start") {
-                        startEngine()
-                    }
-                    .buttonStyle(.borderedProminent)
                 }
+                .frame(minHeight: 32)
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
             .background(Color(NSColor.windowBackgroundColor))
             
             Divider()
@@ -221,4 +252,3 @@ struct AddProfileView: View {
         return dialog.runModal() == .OK ? dialog.url : nil
     }
 }
-
