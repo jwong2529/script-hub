@@ -1,4 +1,6 @@
-# Script Hub for macOS
+# Script Hub
+
+<img src="script-hub/Assets.xcassets/AppIcon.appiconset/icon-mac-512x512.png" alt="App Icon" width="50">
 
 A native macOS application that wraps interactive Python (CLI) scripts into an Apple-style "Command Center."
 

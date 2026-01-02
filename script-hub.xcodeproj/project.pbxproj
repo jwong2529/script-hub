@@ -28,7 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		29F52B052F08859D00BCB84C /* script-hub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "script-hub.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		29F52B052F08859D00BCB84C /* Script Hub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Script Hub.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		29F52B122F08859E00BCB84C /* script-hubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "script-hubTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		29F52B1C2F08859E00BCB84C /* script-hubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "script-hubUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		29F52B352F08865000BCB84C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -91,7 +91,7 @@
 		29F52B062F08859D00BCB84C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				29F52B052F08859D00BCB84C /* script-hub.app */,
+				29F52B052F08859D00BCB84C /* Script Hub.app */,
 				29F52B122F08859E00BCB84C /* script-hubTests.xctest */,
 				29F52B1C2F08859E00BCB84C /* script-hubUITests.xctest */,
 			);
@@ -120,7 +120,7 @@
 			packageProductDependencies = (
 			);
 			productName = "script-hub";
-			productReference = 29F52B052F08859D00BCB84C /* script-hub.app */;
+			productReference = 29F52B052F08859D00BCB84C /* Script Hub.app */;
 			productType = "com.apple.product-type.application";
 		};
 		29F52B112F08859E00BCB84C /* script-hubTests */ = {
@@ -409,6 +409,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Script Hub";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -416,7 +417,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jwong2529.script-hub";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Script Hub";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -440,6 +441,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Script Hub";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -447,7 +449,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jwong2529.script-hub";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Script Hub";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
