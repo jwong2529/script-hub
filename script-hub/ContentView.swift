@@ -101,6 +101,7 @@ struct TerminalSessionView: View {
     @FocusState private var isInputFocused: Bool
     @State private var showSettings = false
     private let bottomID = "BottomAnchor"
+    @AppStorage("terminalFontSize") private var fontSize: Double = 12.0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -180,11 +181,17 @@ struct TerminalSessionView: View {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(engine.outputLog) { message in
                             if message.isUser {
-                                HStack { Spacer(); Text(message.text).padding(8).background(Color.blue).cornerRadius(8) }
-                                    .padding(.vertical, 4)
+                                HStack {
+                                    Spacer()
+                                    Text(message.text)
+                                        .font(.system(size: fontSize, weight: .regular, design: .monospaced))
+                                        .padding(8)
+                                        .background(Color.blue)
+                                        .cornerRadius(8)
+                                }
+                                .padding(.vertical, 4)
                             } else {
-                                AnsiText(text: message.text)
-                                    .font(.system(.body, design: .monospaced))
+                                AnsiText(text: message.text, fontSize: fontSize)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .textSelection(.enabled)
                                     .padding(.vertical, 1)
@@ -218,6 +225,26 @@ struct TerminalSessionView: View {
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
         }
+        .background(
+            Group {
+                // Cmd + Plus (Increase)
+                Button("Zoom In") { fontSize = min(fontSize + 1, 36) }
+                    .keyboardShortcut("+", modifiers: .command)
+                
+                // Cmd + Equal
+                Button("Zoom In Alt") { fontSize = min(fontSize + 1, 36) }
+                    .keyboardShortcut("=", modifiers: .command)
+                
+                // Cmd + Minus (Decrease)
+                Button("Zoom Out") { fontSize = max(fontSize - 1, 8) }
+                    .keyboardShortcut("-", modifiers: .command)
+                
+                // Cmd + 0 (Reset)
+                Button("Reset Zoom") { fontSize = 12 }
+                    .keyboardShortcut("0", modifiers: .command)
+            }
+            .opacity(0)
+        )
         .onDisappear {
             engine.stop()
         }
