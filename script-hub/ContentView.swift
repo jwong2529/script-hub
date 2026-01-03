@@ -44,10 +44,19 @@ struct ContentView: View {
             }
         } detail: {
             if let selectedId = selectedProfileId,
-               let profile = profiles.first(where: { $0.id == selectedId }) {
-                
-                TerminalSessionView(profile: profile)
-                    .id(profile.id)
+               let index = profiles.firstIndex(where: { $0.id == selectedId }) {
+                TerminalSessionView(
+                    profile: $profiles[index],
+                    onDelete: {
+                        profiles.remove(at: index)
+                        selectedProfileId = nil
+                    }
+                )
+                .id(selectedId)
+            } else if profiles.isEmpty {
+                WelcomeView {
+                    showAddSheet = true
+                }
             } else {
                 Text("Select a tool to start")
                     .foregroundColor(.secondary)
@@ -80,10 +89,12 @@ struct ContentView: View {
 }
 
 struct TerminalSessionView: View {
-    let profile: ScriptProfile
+    @Binding var profile: ScriptProfile
+    var onDelete: () -> Void
     @StateObject private var engine = ScriptEngine()
     @State private var userInput = ""
     @FocusState private var isInputFocused: Bool
+    @State private var showSettings = false
     private let bottomID = "BottomAnchor"
     
     var body: some View {
@@ -137,12 +148,25 @@ struct TerminalSessionView: View {
                         .keyboardShortcut("r", modifiers: .command)
                         .help("Run (Cmd + R)")
                     }
+                    
+                    Divider().frame(height: 20)
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.secondary)
+                            .font(.title3)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Edit Tool Settings")
+                    
                 }
                 .frame(minHeight: 32)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color(NSColor.windowBackgroundColor))
+            .sheet(isPresented: $showSettings) {
+                EditProfileView(profile: $profile, isPresented: $showSettings, onDelete: onDelete)
+            }
             
             Divider()
             
@@ -247,6 +271,60 @@ struct AddProfileView: View {
             }
         }
         .padding()
+    }
+    
+    func selectFile(_ types: [String]? = nil) -> URL? {
+        let dialog = NSOpenPanel()
+        dialog.canChooseFiles = true
+        if let types = types { dialog.allowedContentTypes = types.compactMap { UTType(filenameExtension: $0) } }
+        return dialog.runModal() == .OK ? dialog.url : nil
+    }
+}
+
+struct EditProfileView: View {
+    @Binding var profile: ScriptProfile
+    @Binding var isPresented: Bool
+    var onDelete: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Edit Tool").font(.title2)
+            
+            TextField("Name", text: $profile.name).textFieldStyle(.roundedBorder)
+            
+            VStack(alignment: .leading) {
+                Text("Python Path:").font(.caption)
+                HStack {
+                    TextField("...", text: $profile.pythonPath).textFieldStyle(.roundedBorder)
+                    Button("Browse") { if let url = selectFile() { profile.pythonPath = url.path } }
+                }
+            }
+            
+            VStack(alignment: .leading) {
+                Text("Script Path:").font(.caption)
+                HStack {
+                    TextField("...", text: $profile.scriptPath).textFieldStyle(.roundedBorder)
+                    Button("Browse") { if let url = selectFile(["py"]) { profile.scriptPath = url.path } }
+                }
+            }
+            
+            Divider()
+            
+            HStack {
+                Button("Delete Tool", role: .destructive) {
+                    onDelete()
+                    isPresented = false
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Button("Done") { isPresented = false }
+                    .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
+        .frame(width: 500, height: 350)
     }
     
     func selectFile(_ types: [String]? = nil) -> URL? {
