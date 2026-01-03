@@ -110,9 +110,9 @@ struct TerminalSessionView: View {
                             Image(systemName: "stop.circle.fill")
                                 .font(.title2)
                                 .foregroundColor(.red)
+                                .help("Quit (Cmd + .)")
                         }
                         .buttonStyle(.plain)
-                        .help("Kill Process immediately")
                         
                         // Cmd + '.' quit shortcut
                         Button("HiddenSignal") {
@@ -134,6 +134,8 @@ struct TerminalSessionView: View {
                             startEngine()
                         }
                         .controlSize(.regular)
+                        .keyboardShortcut("r", modifiers: .command)
+                        .help("Run (Cmd + R)")
                     }
                 }
                 .frame(minHeight: 32)
@@ -146,15 +148,17 @@ struct TerminalSessionView: View {
             
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 4) {
+                    LazyVStack(alignment: .leading, spacing: 0) {
                         ForEach(engine.outputLog) { message in
                             if message.isUser {
                                 HStack { Spacer(); Text(message.text).padding(8).background(Color.blue).cornerRadius(8) }
+                                    .padding(.vertical, 4)
                             } else {
                                 AnsiText(text: message.text)
                                     .font(.system(.body, design: .monospaced))
                                     .fixedSize(horizontal: false, vertical: true)
                                     .textSelection(.enabled)
+                                    .padding(.vertical, 1)
                             }
                         }
                         Color.clear.frame(height: 1).id(bottomID)
