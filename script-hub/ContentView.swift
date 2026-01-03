@@ -112,50 +112,53 @@ struct TerminalSessionView: View {
                 
                 Spacer()
                 
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     if engine.isRunning {
-                        HStack(spacing: 4) {
-                            Circle().fill(Color.green).frame(width: 8, height: 8)
-                            Text("Live")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Text("Live")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Button(action: {
+                                engine.stop()
+                            }) {
+                                Image(systemName: "stop.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.red)
+                                    .help("Quit (Cmd + .)")
+                            }
+                            .buttonStyle(.plain)
+                            
+                            // Cmd + '.' quit shortcut
+                            Button("HiddenSignal") {
+                                engine.sendInterrupt()
+                            }
+                            .keyboardShortcut(".", modifiers: .command)
+                            .opacity(0)
+                            .frame(width: 0, height: 0)
                         }
-                        
-                        Button(action: {
-                            engine.stop()
-                        }) {
-                            Image(systemName: "stop.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.red)
-                                .help("Quit (Cmd + .)")
-                        }
-                        .buttonStyle(.plain)
-                        
-                        // Cmd + '.' quit shortcut
-                        Button("HiddenSignal") {
-                            engine.sendInterrupt()
-                        }
-                        .keyboardShortcut(".", modifiers: .command)
-                        .opacity(0)
-                        .frame(width: 0, height: 0)
-                        
                     } else {
-                        HStack(spacing: 4) {
-                            Circle().fill(Color.gray).frame(width: 8, height: 8)
-                            Text("Inactive")
-                                .font(.subheadline)
-                                .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                        HStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.gray).frame(width: 8, height: 8)
+                                Text("Inactive")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                            }
+                            
+                            Button("Start") {
+                                startEngine()
+                            }
+                            .controlSize(.regular)
+                            .keyboardShortcut("r", modifiers: .command)
+                            .help("Run (Cmd + R)")
                         }
-                        
-                        Button("Start") {
-                            startEngine()
-                        }
-                        .controlSize(.regular)
-                        .keyboardShortcut("r", modifiers: .command)
-                        .help("Run (Cmd + R)")
                     }
                     
-                    Divider().frame(height: 20)
+                    Divider().frame(height: 16)
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gearshape.fill")
                             .foregroundColor(.secondary)
