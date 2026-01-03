@@ -140,6 +140,7 @@ struct TerminalSessionView: View {
                             .opacity(0)
                             .frame(width: 0, height: 0)
                         }
+                        .padding(.trailing, -8)
                     } else {
                         HStack(spacing: 8) {
                             HStack(spacing: 4) {
@@ -156,6 +157,7 @@ struct TerminalSessionView: View {
                             .keyboardShortcut("r", modifiers: .command)
                             .help("Run (Cmd + R)")
                         }
+                        .padding(.trailing, 2)
                     }
                     
                     Divider().frame(height: 16)
