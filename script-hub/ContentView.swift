@@ -32,6 +32,7 @@ struct ContentView: View {
                         }
                     }
                     .onDelete(perform: deleteProfile)
+                    .onMove(perform: moveProfile)
                 }
             }
             .navigationSplitViewColumnWidth(min: 200, ideal: 250)
@@ -85,6 +86,10 @@ struct ContentView: View {
         if let encoded = try? JSONEncoder().encode(profiles) {
             profilesData = encoded
         }
+    }
+    
+    func moveProfile(from source: IndexSet, to destination: Int) {
+        profiles.move(fromOffsets: source, toOffset: destination)
     }
 }
 
