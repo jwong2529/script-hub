@@ -40,6 +40,14 @@ class ScriptEngine: ObservableObject {
         let scriptUrl = URL(fileURLWithPath: scriptPath)
         self.process?.currentDirectoryURL = scriptUrl.deletingLastPathComponent()
         
+        var env = ProcessInfo.processInfo.environment
+        let currentPath = env["PATH"] ?? ""
+        let homebrewPaths = "/opt/homebrew/bin:/usr/local/bin"
+        if !currentPath.contains("/opt/homebrew/bin") {
+            env["PATH"] = homebrewPaths + ":" + currentPath
+        }
+        self.process?.environment = env
+        
         let outputPipe = Pipe()
         self.inputPipe = Pipe()
         
