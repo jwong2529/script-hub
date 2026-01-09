@@ -96,14 +96,30 @@ class ScriptEngine: ObservableObject {
         process?.terminate()
     }
     
+    private let MAX_HISTORY = 200
+
     func appendOutput(_ text: String) {
         if var last = outputLog.last, !last.isUser {
             outputLog.removeLast()
-            last.text += text
-            outputLog.append(last)
+            
+            // If the single message block is getting too huge (>10k chars),
+            // stop merging and start a new block to prevent UI lag.
+            if last.text.count > 10_000 {
+                outputLog.append(last)
+                let newMessage = LogMessage(text: text, isUser: false) // Start fresh
+                outputLog.append(newMessage)
+            } else {
+                last.text += text
+                outputLog.append(last)
+            }
         } else {
             let message = LogMessage(text: text, isUser: false)
             outputLog.append(message)
+        }
+        
+        // If we have too many messages, remove the oldest ones
+        if outputLog.count > MAX_HISTORY {
+            outputLog.removeFirst(outputLog.count - MAX_HISTORY)
         }
     }
 }
