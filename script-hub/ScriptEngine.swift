@@ -19,7 +19,7 @@ class ScriptEngine: ObservableObject {
     
     struct LogMessage: Identifiable, Equatable {
         let id = UUID()
-        let text: String
+        var text: String
         let isUser: Bool
     }
     
@@ -96,21 +96,14 @@ class ScriptEngine: ObservableObject {
         process?.terminate()
     }
     
-    private func appendOutput(_ rawText: String) {
-        // Fix line endings to avoid double spacing
-        var cleanText = rawText.replacingOccurrences(of: "\r\n", with: "\n")
-        
-        // Handle leftover carriage returns (spinner logic)
-        cleanText = cleanText.replacingOccurrences(of: "\r", with: "\n")
-        
-        // So that SwiftUI doesn't render as an extra blank line
-        if cleanText.hasSuffix("\n") {
-            cleanText.removeLast()
+    func appendOutput(_ text: String) {
+        if var last = outputLog.last, !last.isUser {
+            outputLog.removeLast()
+            last.text += text
+            outputLog.append(last)
+        } else {
+            let message = LogMessage(text: text, isUser: false)
+            outputLog.append(message)
         }
-        
-        // Ignore completely empty chunks
-        if cleanText.isEmpty { return }
-        
-        self.outputLog.append(LogMessage(text: cleanText, isUser: false))
     }
 }

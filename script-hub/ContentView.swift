@@ -193,6 +193,7 @@ struct TerminalSessionView: View {
                                         .padding(8)
                                         .background(Color.blue)
                                         .cornerRadius(8)
+                                        .textSelection(.enabled)
                                 }
                                 .padding(.vertical, 4)
                             } else {
