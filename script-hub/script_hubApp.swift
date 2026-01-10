@@ -47,6 +47,36 @@ struct script_hubApp: App {
                 .keyboardShortcut("0", modifiers: .command)
             }
             
+            CommandMenu("Script") {
+                ScriptCommands()
+            }
+            
         }
+    }
+}
+
+struct ScriptCommands: View {
+    @FocusedValue(\.terminalActions) var actions
+    
+    var body: some View {
+        Button("Run Script") { actions?.start() }
+            .keyboardShortcut("r", modifiers: .command)
+            .disabled(actions == nil || actions!.isRunning)
+        
+        Button("Stop Script") { actions?.stop() }
+            .keyboardShortcut(".", modifiers: .command)
+            .disabled(actions == nil || !actions!.isRunning)
+        
+        Divider()
+        
+        Button("Clear Console") { actions?.clear() }
+            .keyboardShortcut("k", modifiers: .command)
+            .disabled(actions == nil || actions!.isLogEmpty)
+        
+        Divider()
+        
+        Button("Tool Settings") { actions?.openSettings() }
+            .keyboardShortcut(",", modifiers: .command)
+            .disabled(actions == nil)
     }
 }

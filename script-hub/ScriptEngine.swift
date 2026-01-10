@@ -17,6 +17,9 @@ class ScriptEngine: ObservableObject {
     private var process: Process?
     private var inputPipe: Pipe?
     
+    private var outputBuffer: String = ""
+    private var timer: Timer?
+    
     struct LogMessage: Identifiable, Equatable {
         let id = UUID()
         var text: String
@@ -26,7 +29,9 @@ class ScriptEngine: ObservableObject {
     func startScript(pythonPath: String, scriptPath: String) {
         self.outputLog = [] // Clear log
         self.configError = nil
-        
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            self?.flushBuffer()
+        }
         guard !pythonPath.isEmpty, !scriptPath.isEmpty else {
             self.configError = "Paths are missing."
             return
@@ -59,13 +64,16 @@ class ScriptEngine: ObservableObject {
             let data = handle.availableData
             if let string = String(data: data, encoding: .utf8), !string.isEmpty {
                 DispatchQueue.main.async {
-                    self?.appendOutput(string)
+                    self?.outputBuffer += string
                 }
             }
         }
         
         self.process?.terminationHandler = { [weak self] _ in
             DispatchQueue.main.async {
+                self?.flushBuffer()
+                self?.timer?.invalidate()
+                self?.timer = nil
                 self?.isRunning = false
                 self?.outputLog.append(LogMessage(text: "\n[Process Finished]", isUser: false))
             }
@@ -79,13 +87,23 @@ class ScriptEngine: ObservableObject {
         }
     }
     
+    private func flushBuffer() {
+        guard !outputBuffer.isEmpty else { return }
+        
+        self.appendOutput(outputBuffer)
+        outputBuffer = ""
+    }
+    
     func sendInput(_ input: String) {
         let stringToSend = input + "\n"
         guard let data = stringToSend.data(using: .utf8) else { return }
         self.inputPipe?.fileHandleForWriting.write(data)
         
         let visualLog = input.isEmpty ? "⏎" : input
-        self.outputLog.append(LogMessage(text: visualLog, isUser: true))
+        
+        DispatchQueue.main.async {
+            self.outputLog.append(LogMessage(text: visualLog, isUser: true))
+        }
     }
     
     func sendInterrupt() {

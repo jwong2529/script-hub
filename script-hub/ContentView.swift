@@ -51,6 +51,9 @@ struct ContentView: View {
                     onDelete: {
                         profiles.remove(at: index)
                         selectedProfileId = nil
+                    },
+                    onClose: {
+                        selectedProfileId = nil
                     }
                 )
                 .id(selectedId)
@@ -96,6 +99,7 @@ struct ContentView: View {
 struct TerminalSessionView: View {
     @Binding var profile: ScriptProfile
     var onDelete: () -> Void
+    var onClose: () -> Void
     @StateObject private var engine = ScriptEngine()
     @State private var userInput = ""
     @FocusState private var isInputFocused: Bool
@@ -128,17 +132,9 @@ struct TerminalSessionView: View {
                                 Image(systemName: "stop.circle.fill")
                                     .font(.title2)
                                     .foregroundColor(.red)
-                                    .help("Quit (Cmd + .)")
+                                    .help("Stop Script (Cmd + .)")
                             }
                             .buttonStyle(.plain)
-                            
-                            // Cmd + '.' quit shortcut
-                            Button("HiddenSignal") {
-                                engine.sendInterrupt()
-                            }
-                            .keyboardShortcut(".", modifiers: .command)
-                            .opacity(0)
-                            .frame(width: 0, height: 0)
                         }
                         .padding(.trailing, -8)
                     } else {
@@ -154,20 +150,31 @@ struct TerminalSessionView: View {
                                 startEngine()
                             }
                             .controlSize(.regular)
-                            .keyboardShortcut("r", modifiers: .command)
                             .help("Run (Cmd + R)")
                         }
                         .padding(.trailing, 2)
                     }
                     
                     Divider().frame(height: 16)
+                    
+                    Button(action: {
+                        engine.outputLog.removeAll()
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.secondary)
+                            .font(.title3)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(engine.outputLog.isEmpty)
+                    .help("Clear Console Output (Cmd + K)")
+                    
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gearshape.fill")
                             .foregroundColor(.secondary)
                             .font(.title3)
                     }
                     .buttonStyle(.plain)
-                    .help("Edit Tool Settings")
+                    .help("Settings (Cmd + ,)")
                     
                 }
                 .frame(minHeight: 32)
@@ -183,43 +190,44 @@ struct TerminalSessionView: View {
             
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(engine.outputLog) { message in
-                            if message.isUser {
-                                HStack {
-                                    Spacer()
-                                    Text(message.text)
-                                        .font(.system(size: fontSize, weight: .regular, design: .monospaced))
-                                        .padding(8)
-                                        .background(Color.blue)
-                                        .cornerRadius(8)
+                    VStack(spacing: 0) {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(engine.outputLog) { message in
+                                if message.isUser {
+                                    HStack {
+                                        Spacer()
+                                        Text(message.text)
+                                            .font(.system(size: fontSize, weight: .regular, design: .monospaced))
+                                            .padding(8)
+                                            .background(Color.blue)
+                                            .cornerRadius(8)
+                                            .textSelection(.enabled)
+                                    }
+                                    .padding(.vertical, 4)
+                                } else {
+                                    AnsiText(text: message.text, fontSize: fontSize)
+                                        .fixedSize(horizontal: false, vertical: true)
                                         .textSelection(.enabled)
+                                        .padding(.vertical, 1)
                                 }
-                                .padding(.vertical, 4)
-                            } else {
-                                AnsiText(text: message.text, fontSize: fontSize)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .textSelection(.enabled)
-                                    .padding(.vertical, 1)
                             }
                         }
+                        .padding()
                         Color.clear.frame(height: 1).id(bottomID)
                     }
-                    .padding()
+                    
                 }
                 
-                // Scroll on new log output
                 .onChange(of: engine.outputLog.count) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        proxy.scrollTo(bottomID, anchor: .bottom)
-                    }
+                    scrollToBottom(proxy: proxy)
                 }
                 
-                // Scroll on typing (so you can see bottom of terminal content even if input box expands)
+                .onChange(of: engine.outputLog.last?.text) {
+                    scrollToBottom(proxy: proxy)
+                }
+                
                 .onChange(of: userInput) {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        proxy.scrollTo(bottomID, anchor: .bottom)
-                    }
+                    scrollToBottom(proxy: proxy, delay: 0.05)
                 }
             }
             
@@ -255,28 +263,33 @@ struct TerminalSessionView: View {
             .padding(12)
             .background(Color(NSColor.controlBackgroundColor))
         }
-        .background(
-            Group {
-                // Cmd + Plus (Increase)
-                Button("Zoom In") { fontSize = min(fontSize + 1, 36) }
-                    .keyboardShortcut("+", modifiers: .command)
-                
-                // Cmd + Equal
-                Button("Zoom In Alt") { fontSize = min(fontSize + 1, 36) }
-                    .keyboardShortcut("=", modifiers: .command)
-                
-                // Cmd + Minus (Decrease)
-                Button("Zoom Out") { fontSize = max(fontSize - 1, 8) }
-                    .keyboardShortcut("-", modifiers: .command)
-                
-                // Cmd + 0 (Reset)
-                Button("Reset Zoom") { fontSize = 12 }
-                    .keyboardShortcut("0", modifiers: .command)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: onClose) {
+                    Image(systemName: "square.grid.2x2")
+                        .imageScale(.medium) 
+                }
+                .help("Return to Tools List")
             }
-            .opacity(0)
-        )
+        }
+        .focusedSceneValue(\.terminalActions, TerminalActions(
+            start: { startEngine() },
+            stop: { engine.sendInterrupt() },
+            clear: { engine.outputLog.removeAll() },
+            openSettings: { showSettings = true },
+            isRunning: engine.isRunning,
+            isLogEmpty: engine.outputLog.isEmpty
+        ))
+        .focusable()
         .onDisappear {
             engine.stop()
+        }
+    }
+    private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.easeOut(duration: 0.1)) {
+                proxy.scrollTo(bottomID, anchor: .bottom)
+            }
         }
     }
     
