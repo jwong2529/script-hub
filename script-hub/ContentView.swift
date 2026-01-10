@@ -207,8 +207,17 @@ struct TerminalSessionView: View {
                     }
                     .padding()
                 }
+                
+                // Scroll on new log output
                 .onChange(of: engine.outputLog.count) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        proxy.scrollTo(bottomID, anchor: .bottom)
+                    }
+                }
+                
+                // Scroll on typing (so you can see bottom of terminal content even if input box expands)
+                .onChange(of: userInput) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                         proxy.scrollTo(bottomID, anchor: .bottom)
                     }
                 }
@@ -216,19 +225,34 @@ struct TerminalSessionView: View {
             
             Divider()
             
-            HStack {
-                TextField("Command...", text: $userInput)
+            HStack(alignment: .bottom, spacing: 12) {
+                TextField("Command...", text: $userInput, axis: .vertical)
                     .textFieldStyle(.plain)
                     .font(.system(.body, design: .monospaced))
                     .focused($isInputFocused)
                     .disabled(!engine.isRunning)
-                    .onSubmit {
-                        engine.sendInput(userInput)
-                        userInput = ""
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { isInputFocused = true }
+                    .lineLimit(1...8)
+                    .onKeyPress(.return) {
+                        // If Shift is pressed, let it create a new line
+                        if NSEvent.modifierFlags.contains(.shift) {
+                            return .ignored
+                        }
+                        // Otherwise, send the command and block the new line
+                        submitCommand()
+                        return .handled
                     }
+                    .frame(minHeight: 24)
+                
+                Button(action: submitCommand) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.title3)
+                        .foregroundColor(canSubmit ? .blue : .gray)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canSubmit)
+                .padding(.bottom, 5)
             }
-            .padding()
+            .padding(12)
             .background(Color(NSColor.controlBackgroundColor))
         }
         .background(
@@ -253,6 +277,19 @@ struct TerminalSessionView: View {
         )
         .onDisappear {
             engine.stop()
+        }
+    }
+    
+    private var canSubmit: Bool {
+        engine.isRunning
+    }
+    
+    private func submitCommand() {
+        guard canSubmit else { return }
+        engine.sendInput(userInput)
+        userInput = ""
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            isInputFocused = true
         }
     }
     
