@@ -13,9 +13,11 @@ It allows you to run scripts in a clean GUI without needing to open the Terminal
 * **ANSI Color Support:** Translates terminal color codes (Red, Green, Blue, Dim) into native SwiftUI colors.
 * **Interactive Input:** Type commands just like in a terminal.
 * **Other:** 
+    - Favorite/pin tools.
     - Supports (Stop) signal handling via button or `Cmd + .`.
     - Configure Python paths and script locations via the UI.
     - Adjust font sizing.
+    - Use keyboard shortcuts.
 
 ---
 
