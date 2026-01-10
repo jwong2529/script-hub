@@ -22,27 +22,50 @@ struct ContentView: View {
     @State private var selectedProfileId: UUID?
     @State private var showAddSheet = false
     
+    @State private var searchText = ""
+    
+    var filteredProfiles: [ScriptProfile] {
+        if searchText.isEmpty {
+            return profiles
+        } else {
+            return profiles.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
+    
+    var moveAction: ((IndexSet, Int) -> Void)? {
+        if searchText.isEmpty {
+            return moveProfile
+        } else {
+            return nil
+        }
+    }
+    
+    var sidebarView: some View {
+        List(selection: $selectedProfileId) {
+            Section("My Tools") {
+                ForEach(filteredProfiles) { profile in
+                    NavigationLink(value: profile.id) {
+                        Label(profile.name, systemImage: "applescript")
+                    }
+                }
+                .onDelete(perform: deleteProfile)
+                .onMove(perform: moveAction)
+            }
+        }
+        .navigationSplitViewColumnWidth(min: 200, ideal: 250)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { showAddSheet = true }) {
+                    Label("Add Tool", systemImage: "plus")
+                }
+            }
+        }
+        .searchable(text: $searchText, placement: .sidebar, prompt: "Search tools")
+    }
+
     var body: some View {
         NavigationSplitView {
-            List(selection: $selectedProfileId) {
-                Section("My Tools") {
-                    ForEach(profiles) { profile in
-                        NavigationLink(value: profile.id) {
-                            Label(profile.name, systemImage: "applescript")
-                        }
-                    }
-                    .onDelete(perform: deleteProfile)
-                    .onMove(perform: moveProfile)
-                }
-            }
-            .navigationSplitViewColumnWidth(min: 200, ideal: 250)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showAddSheet = true }) {
-                        Label("Add Tool", systemImage: "plus")
-                    }
-                }
-            }
+            sidebarView
         } detail: {
             if let selectedId = selectedProfileId,
                let index = profiles.firstIndex(where: { $0.id == selectedId }) {
