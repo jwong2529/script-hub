@@ -92,7 +92,8 @@ struct ContentView: View {
         .onAppear(perform: loadProfiles)
         .sheet(isPresented: $showAddSheet) {
             AddProfileView(profiles: $profiles, isPresented: $showAddSheet)
-                .frame(width: 500, height: 400)
+                .frame(width: 500)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .onChange(of: profiles) { saveProfiles() }
         .frame(minWidth: 800, minHeight: 600)
@@ -347,28 +348,32 @@ struct AddProfileView: View {
     @State private var scriptPath = ""
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Add New Tool").font(.title2)
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Add New Tool")
+                .font(.title2)
+                .padding(.bottom, 20)
             
-            TextField("Tool Name (e.g. GCal Manager)", text: $name)
-                .textFieldStyle(.roundedBorder)
-            
-            VStack(alignment: .leading) {
-                Text("Python Path:").font(.caption)
-                HStack {
-                    TextField("...", text: $pythonPath).textFieldStyle(.roundedBorder)
-                    Button("Browse") { if let url = selectFile() { pythonPath = url.path } }
+            VStack(alignment: .leading, spacing: 16) {
+                TextField("Tool Name (e.g. GCal Manager)", text: $name)
+                    .textFieldStyle(.roundedBorder)
+                
+                VStack(alignment: .leading) {
+                    Text("Python Path:").font(.caption)
+                    HStack {
+                        TextField("...", text: $pythonPath).textFieldStyle(.roundedBorder)
+                        Button("Browse") { if let url = selectFile() { pythonPath = url.path } }
+                    }
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Script Path (.py):").font(.caption)
+                    HStack {
+                        TextField("...", text: $scriptPath).textFieldStyle(.roundedBorder)
+                        Button("Browse") { if let url = selectFile(["py"]) { scriptPath = url.path } }
+                    }
                 }
             }
-            
-            VStack(alignment: .leading) {
-                Text("Script Path (.py):").font(.caption)
-                HStack {
-                    TextField("...", text: $scriptPath).textFieldStyle(.roundedBorder)
-                    Button("Browse") { if let url = selectFile(["py"]) { scriptPath = url.path } }
-                }
-            }
-            
+            .padding(.bottom, 24)
             HStack {
                 Button("Cancel") { isPresented = false }
                 Spacer()
@@ -380,6 +385,7 @@ struct AddProfileView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(name.isEmpty || pythonPath.isEmpty || scriptPath.isEmpty)
             }
+            Spacer(minLength: 0)
         }
         .padding()
     }
