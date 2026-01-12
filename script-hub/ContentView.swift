@@ -328,9 +328,6 @@ struct TerminalSessionView: View {
                     scrollToBottom(proxy: proxy)
                 }
                 
-                .onChange(of: userInput) {
-                    scrollToBottom(proxy: proxy, delay: 0.05)
-                }
             }
             
             Divider()
