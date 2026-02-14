@@ -25,7 +25,6 @@ struct script_hubApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowResizability(.contentSize)
         .commands {
             // Show/Hide Sidebar
             SidebarCommands()

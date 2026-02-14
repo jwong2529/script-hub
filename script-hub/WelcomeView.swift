@@ -37,6 +37,6 @@ struct WelcomeView: View {
         }
         .padding()
         .padding(.top, -100)
-        .frame(maxWidth: 400)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

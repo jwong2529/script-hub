@@ -152,7 +152,7 @@ struct ContentView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .onChange(of: profiles) { saveProfiles() }
-        .frame(minWidth: 800, minHeight: 600)
+        .frame(minWidth: 500, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
     }
     
     var favorites: [ScriptProfile] {
@@ -211,75 +211,11 @@ struct TerminalSessionView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .center) {
-                Text(profile.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                HStack(spacing: 16) {
-                    if engine.isRunning {
-                        HStack(spacing: 8) {
-                            HStack(spacing: 4) {
-                                Circle().fill(Color.green).frame(width: 8, height: 8)
-                                Text("Live")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            Button(action: {
-                                engine.stop()
-                            }) {
-                                Image(systemName: "stop.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.red)
-                                    .help("Stop Script (Cmd + .)")
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.trailing, -8)
-                    } else {
-                        HStack(spacing: 8) {
-                            HStack(spacing: 4) {
-                                Circle().fill(Color.gray).frame(width: 8, height: 8)
-                                Text("Inactive")
-                                    .font(.subheadline)
-                                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
-                            }
-                            
-                            Button("Start") {
-                                startEngine()
-                            }
-                            .controlSize(.regular)
-                            .help("Run (Cmd + R)")
-                        }
-                        .padding(.trailing, 2)
-                    }
-                    
-                    Divider().frame(height: 16)
-                    
-                    Button(action: {
-                        engine.outputLog.removeAll()
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.secondary)
-                            .font(.title3)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(engine.outputLog.isEmpty)
-                    .help("Clear Console Output (Cmd + K)")
-                    
-                    Button(action: { showSettings = true }) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.secondary)
-                            .font(.title3)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Settings (Cmd + ,)")
-                    
-                }
-                .frame(minHeight: 32)
+            ViewThatFits(in: .horizontal) {
+                // Full Header
+                headerView(compact: false)
+                // Compact Header 
+                headerView(compact: true)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -382,6 +318,90 @@ struct TerminalSessionView: View {
         .focusable()
         .onDisappear {
             engine.stop()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func headerView(compact: Bool) -> some View {
+        HStack(alignment: .center) {
+            Text(profile.name)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .lineLimit(1)
+            
+            Spacer(minLength: 8)
+            
+            HStack(spacing: compact ? 8 : 16) {
+                if engine.isRunning {
+                    HStack(spacing: compact ? 4 : 8) {
+                        if !compact {
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.green).frame(width: 8, height: 8)
+                                Text("Live")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Circle().fill(Color.green).frame(width: 8, height: 8)
+                        }
+                        
+                        Button(action: {
+                            engine.stop()
+                        }) {
+                            Image(systemName: "stop.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.red)
+                                .help("Stop Script (Cmd + .)")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    HStack(spacing: compact ? 4 : 8) {
+                        if !compact {
+                            HStack(spacing: 4) {
+                                Circle().fill(Color.gray).frame(width: 8, height: 8)
+                                Text("Inactive")
+                                    .font(.subheadline)
+                                    .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                            }
+                        } else {
+                            Circle().fill(Color.gray).frame(width: 8, height: 8)
+                        }
+                        
+                        Button(compact ? "" : "Start") {
+                            startEngine()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(compact ? .small : .regular)
+                        .help("Run (Cmd + R)")
+                    }
+                }
+                
+                if !compact {
+                    Divider().frame(height: 16)
+                }
+                
+                Button(action: {
+                    engine.outputLog.removeAll()
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.secondary)
+                        .font(compact ? .headline : .title3)
+                }
+                .buttonStyle(.plain)
+                .disabled(engine.outputLog.isEmpty)
+                .help("Clear Console Output (Cmd + K)")
+                
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "gearshape.fill")
+                        .foregroundColor(.secondary)
+                        .font(compact ? .headline : .title3)
+                }
+                .buttonStyle(.plain)
+                .help("Settings (Cmd + ,)")
+                
+            }
+            .frame(minHeight: 32)
         }
     }
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.05) {
